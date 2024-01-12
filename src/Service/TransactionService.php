@@ -33,10 +33,7 @@ class TransactionService
         $transaction->setReason($reason);
         $transaction->setCreatedAt(new DateTime());
 
-        // Сохранение транзакции в базе данных
         $this->entityManager->persist($transaction);
-        $this->entityManager->flush();
-
         return $transaction;
     }
 }
