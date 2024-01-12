@@ -35,7 +35,6 @@ class WalletService
         $requestCurrency = $dto->getCurrency();
         $transactionType = $dto->getTransactionType();
 
-        $this->entityManager->beginTransaction();
         $wallet = $this->walletRepository->findOneBy(['id' => $dto->getWalletId()]);
         if($wallet->getCurrency() != $requestCurrency){
            $amount = $this->currencyService->convertCurrency($amount, $requestCurrency, $wallet->getCurrency());
@@ -53,6 +52,8 @@ class WalletService
         $balance = $payStrategy->countBalance($amount, $currentBalance);
         $decimalBalance = $this->decimalService->intToStringDecimal($balance);
         $wallet->setBalance($decimalBalance);
+        
+        $this->entityManager->beginTransaction();
         $this->entityManager->persist($wallet);
         //я хотел здесь передавать дто, но не успеваю по срокам, поэтому оставил так
         $this->transactionService->createTransaction(
