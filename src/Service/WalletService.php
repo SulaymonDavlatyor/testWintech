@@ -10,6 +10,8 @@ use App\Repository\TransactionRepository;
 use App\Repository\WalletRepository;
 use App\Strategy\CreditPayStrategy;
 use App\Strategy\DebitPayStrategy;
+use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 
 class WalletService
 {
@@ -18,7 +20,8 @@ class WalletService
         private WalletRepository $walletRepository,
         private TransactionService $transactionService,
         private CurrencyService $currencyService,
-        private DecimalService $decimalService
+        private DecimalService $decimalService,
+        private EntityManagerInterface $entityManager
     ){
     }
 
@@ -32,6 +35,7 @@ class WalletService
         $requestCurrency = $dto->getCurrency();
         $transactionType = $dto->getTransactionType();
 
+        $this->entityManager->beginTransaction();
         $wallet = $this->walletRepository->findOneBy(['id' => $dto->getWalletId()]);
         if($wallet->getCurrency() != $requestCurrency){
            $amount = $this->currencyService->convertCurrency($amount, $requestCurrency, $wallet->getCurrency());
@@ -49,7 +53,7 @@ class WalletService
         $balance = $payStrategy->countBalance($amount, $currentBalance);
         $decimalBalance = $this->decimalService->intToStringDecimal($balance);
         $wallet->setBalance($decimalBalance);
-
+        $this->entityManager->persist($wallet);
         //я хотел здесь передавать дто, но не успеваю по срокам, поэтому оставил так
         $this->transactionService->createTransaction(
             $dto->getWalletId(),
@@ -59,6 +63,8 @@ class WalletService
             $dto->getReason()
         );
 
+        $this->entityManager->flush();
+        $this->entityManager->commit();
         return $wallet;
     }
 }
