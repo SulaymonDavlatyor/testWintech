@@ -10,9 +10,9 @@ class CurrencyService
         //$exchangeRate = $this->currencyRepository->findRateByCurrency($currency);
         //просто не видел смысла тратить время на создание таблицы и entity, поэтому захардкодил
         if($currency == "USD"){
-            return 100;
+            return 1;
         }else{
-            return 10;
+            return 100;
         }
     }
 
